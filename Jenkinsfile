@@ -17,11 +17,9 @@ pipeline {
         stage('Set Up & Run Unit Tests') {
             steps {
                 bat '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
+                    python -m pip install --upgrade pip
                     pip install -r requirements.txt
-                    pytest
+                    python -m pytest
                 '''
             }
         }
@@ -29,7 +27,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+                    bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% -t %IMAGE_NAME%:latest ."
                 }
             }
         }
@@ -37,9 +35,11 @@ pipeline {
         stage('Push Image to Docker Hub') {
             steps {
                 script {
-                    bat 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                    bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                    bat "docker push ${IMAGE_NAME}:latest"
+                    bat '''
+                        echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
+                        docker push %IMAGE_NAME%:%IMAGE_TAG%
+                        docker push %IMAGE_NAME%:latest
+                    '''
                 }
             }
         }
@@ -47,14 +47,14 @@ pipeline {
 
     post {
         always {
-            bat 'docker logout || true'
+            bat 'docker logout || rem'
             cleanWs()
         }
         success {
-            echo "CI pipeline completed successfully. Image pushed: ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "CI pipeline completed successfully. Image pushed to Docker Hub!"
         }
         failure {
-            echo "Pipeline failed! Please check the logs."
+            echo "Pipeline failed! Please inspect logs."
         }
     }
 }
