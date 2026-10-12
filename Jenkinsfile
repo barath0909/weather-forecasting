@@ -49,7 +49,7 @@ pipeline {
                     git config user.email "jenkins@barath.dev"
                     git add k8s/deployment.yaml
                     git commit -m "chore(k8s): update image tag to %IMAGE_TAG% [skip ci]" || echo No changes to commit
-                    git push https://%GITHUB_CREDENTIALS_USR%:%GITHUB_CREDENTIALS_PSW%@github.com/barath0909/weather-forecasting.git HEAD:main
+                    git push https://%GITHUB_CREDENTIALS_USR%:%GITHUB_CREDENTIALS_PSW%@github.com/barath0909/weather-forecasting.git HEAD:refs/heads/main
                 '''
             }
         }
