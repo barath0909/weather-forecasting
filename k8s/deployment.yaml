@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: weather-app
-        image: barathj09/weather-forecasting-app:latest
+        image: barathj09/weather-forecasting-app:9
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
