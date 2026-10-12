@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecasting Website</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="home-body">
+    <div class="card">
+        <h2>WEATHER FORECASTING</h2>
+        <p class="subtitle">Access Real-Time Weather Across All India</p>
+        <hr>
+
+        {% if error %}
+            <div class="alert-error">{{ error }}</div>
+        {% endif %}
+
+        <form action="/weather" method="GET" id="search-form">
+            <label for="city">Search City, District or Town:</label>
+            <input 
+                type="text" 
+                id="city" 
+                name="city" 
+                list="india-cities" 
+                placeholder="e.g., Chennai, Coimbatore, Shimla, Varanasi" 
+                autocomplete="off"
+            >
+            
+            <datalist id="india-cities">
+                <!-- South India -->
+                <option value="Chennai, Tamil Nadu">
+                <option value="Coimbatore, Tamil Nadu">
+                <option value="Madurai, Tamil Nadu">
+                <option value="Tiruchirappalli, Tamil Nadu">
+                <option value="Salem, Tamil Nadu">
+                <option value="Bengaluru, Karnataka">
+                <option value="Mysuru, Karnataka">
+                <option value="Hubballi, Karnataka">
+                <option value="Mangaluru, Karnataka">
+                <option value="Hyderabad, Telangana">
+                <option value="Warangal, Telangana">
+                <option value="Visakhapatnam, Andhra Pradesh">
+                <option value="Vijayawada, Andhra Pradesh">
+                <option value="Tirupati, Andhra Pradesh">
+                <option value="Kochi, Kerala">
+                <option value="Thiruvananthapuram, Kerala">
+                <option value="Kozhikode, Kerala">
+                
+                <!-- West India -->
+                <option value="Mumbai, Maharashtra">
+                <option value="Pune, Maharashtra">
+                <option value="Nagpur, Maharashtra">
+                <option value="Nashik, Maharashtra">
+                <option value="Ahmedabad, Gujarat">
+                <option value="Surat, Gujarat">
+                <option value="Vadodara, Gujarat">
+                <option value="Rajkot, Gujarat">
+                <option value="Panaji, Goa">
+
+                <!-- North & Central India -->
+                <option value="Delhi, NCR">
+                <option value="Noida, Uttar Pradesh">
+                <option value="Lucknow, Uttar Pradesh">
+                <option value="Varanasi, Uttar Pradesh">
+                <option value="Kanpur, Uttar Pradesh">
+                <option value="Agra, Uttar Pradesh">
+                <option value="Jaipur, Rajasthan">
+                <option value="Jodhpur, Rajasthan">
+                <option value="Udaipur, Rajasthan">
+                <option value="Chandigarh, Punjab/Haryana">
+                <option value="Ludhiana, Punjab">
+                <option value="Amritsar, Punjab">
+                <option value="Bhopal, Madhya Pradesh">
+                <option value="Indore, Madhya Pradesh">
+                <option value="Gwalior, Madhya Pradesh">
+                <option value="Dehradun, Uttarakhand">
+                <option value="Shimla, Himachal Pradesh">
+                <option value="Srinagar, Jammu & Kashmir">
+
+                <!-- East & North-East India -->
+                <option value="Kolkata, West Bengal">
+                <option value="Siliguri, West Bengal">
+                <option value="Patna, Bihar">
+                <option value="Gaya, Bihar">
+                <option value="Ranchi, Jharkhand">
+                <option value="Jamshedpur, Jharkhand">
+                <option value="Bhubaneswar, Odisha">
+                <option value="Cuttack, Odisha">
+                <option value="Guwahati, Assam">
+                <option value="Shillong, Meghalaya">
+                <option value="Imphal, Manipur">
+                <option value="Agartala, Tripura">
+                <option value="Aizawl, Mizoram">
+                <option value="Gangtok, Sikkim">
+            </datalist>
+
+            <button type="submit" class="btn-primary">Search Weather</button>
+            <div class="divider"><span>OR</span></div>
+            <button type="button" class="btn-secondary" onclick="getLocation()">📍 Use My Current Location</button>
+        </form>
+    </div>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        window.location.href = `/weather?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
+                    },
+                    () => {
+                        alert("Permission denied or GPS unavailable. Please enter your city name.");
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        }
+    </script>
+</body>
+</html>

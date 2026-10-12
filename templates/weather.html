@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ weather.city }} - Weather Forecast & Air Quality</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="app-body">
+
+    <div class="main-wrapper">
+        <!-- Hero Card -->
+        <div class="weather-widget">
+            <div class="widget-header">
+                <div class="city-meta">
+                    <h1 class="city-name">{{ weather.city }}</h1>
+                    <p class="day-label">{{ weather.day_name }}</p>
+                </div>
+                <div class="temperature-main">
+                    {{ weather.temp_display }} °C
+                </div>
+            </div>
+
+            <div class="widget-center">
+                <div class="weather-params">
+                    <div class="param-item">
+                        <span class="icon">💧</span>
+                        <span>Humidity: {{ weather.humidity }}%</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="icon">💨</span>
+                        <span>Wind: {{ weather.wind_info }}</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="icon">⏱️</span>
+                        <span>Pressure: {{ weather.pressure }} hPa</span>
+                    </div>
+                </div>
+
+                <div class="hero-illustration">
+                    <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@4x.png" alt="{{ weather.condition }}" class="hero-icon">
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <a href="/" class="search-btn-glass">← Change Location</a>
+            </div>
+        </div>
+
+        <!-- Storm Alerts (if present) -->
+        {% if weather.alerts %}
+        <div class="alerts-banner">
+            {% for alert in weather.alerts %}
+                <p>⚠️ {{ alert }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- AQI Meter & Sun Tracker Grid -->
+        <div class="two-column-grid">
+            
+            <!-- Air Quality Index (AQI) Meter -->
+            <div class="glass-card">
+                <div class="card-title-row">
+                    <h3>🌿 Air Quality Index (AQI)</h3>
+                    <span class="aqi-badge {{ aqi.color }}">{{ aqi.badge }} (Level {{ aqi.score }}/5)</span>
+                </div>
+                <div class="aqi-stats-row">
+                    <div class="aqi-metric">
+                        <span class="metric-num">{{ aqi.pm25 }}</span>
+                        <span class="metric-label">PM2.5 (µg/m³)</span>
+                    </div>
+                    <div class="aqi-metric">
+                        <span class="metric-num">{{ aqi.pm10 }}</span>
+                        <span class="metric-label">PM10 (µg/m³)</span>
+                    </div>
+                </div>
+                <p class="aqi-advisory">💡 <strong>Advisory:</strong> {{ aqi.advice }}</p>
+            </div>
+
+            <!-- Sunrise, Sunset & Golden Hour Tracker -->
+            <div class="glass-card">
+                <div class="card-title-row">
+                    <h3>☀️️ Sun & Daylight Tracker</h3>
+                    <span class="daylight-badge">{{ sun.daylight }} daylight</span>
+                </div>
+                <div class="sun-tracker-row">
+                    <div class="sun-box">
+                        <span class="sun-icon">🌅</span>
+                        <span class="sun-time">{{ sun.sunrise }}</span>
+                        <span class="sun-lbl">Sunrise</span>
+                    </div>
+                    <div class="sun-box">
+                        <span class="sun-icon">📸</span>
+                        <span class="sun-time">{{ sun.golden_hour }}</span>
+                        <span class="sun-lbl">Golden Hour</span>
+                    </div>
+                    <div class="sun-box">
+                        <span class="sun-icon">🌇</span>
+                        <span class="sun-time">{{ sun.sunset }}</span>
+                        <span class="sun-lbl">Sunset</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Daily Forecast Reports (Monday, Tuesday, Wednesday, etc.) -->
+        <div class="analytics-card">
+            <h3 class="section-heading">📅 Day-by-Day Forecast Breakdown</h3>
+            <div class="daily-table">
+                {% for d in daily_reports %}
+                <div class="daily-row">
+                    <div class="day-col">
+                        <strong>{{ d.day_name }}</strong>
+                        <span class="sub-date">{{ d.date }}</span>
+                    </div>
+                    <div class="icon-col">
+                        <img src="https://openweathermap.org/img/wn/{{ d.icon }}.png" alt="icon">
+                        <span>{{ d.condition }}</span>
+                    </div>
+                    <div class="humidity-col">
+                        💧 {{ d.avg_humidity }}%
+                    </div>
+                    <div class="temp-col">
+                        <span class="high-temp">+{{ d.max_temp }}°C</span>
+                        <span class="low-temp">+{{ d.min_temp }}°C</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Trend Graph & Radar Map -->
+        <div class="analytics-card">
+            <h3 class="section-heading">48-Hour Trend & Radar Map</h3>
+            <div class="chart-wrapper">
+                <canvas id="tempChart"></canvas>
+            </div>
+            <div id="map" class="radar-map"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const ctx = document.getElementById('tempChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels | tojson }},
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: {{ chart_temps | tojson }},
+                    borderColor: '#0288d1',
+                    backgroundColor: 'rgba(2, 136, 209, 0.15)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        const lat = {{ weather.lat }};
+        const lon = {{ weather.lon }};
+        const map = L.map('map').setView([lat, lon], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([lat, lon]).addTo(map)
+            .bindPopup('<b>{{ weather.city }}</b><br>AQI Level: {{ aqi.score }} ({{ aqi.badge }})')
+            .openPopup();
+    </script>
+</body>
+</html>
